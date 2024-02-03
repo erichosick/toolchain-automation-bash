@@ -1,0 +1,27 @@
+{
+      "name": "@ehosick/markdown-scripts",
+      "version": "1.0.0",
+      "license": "GPL-3.0-or-later",
+      "private": true,
+      "description": "**Markdown-scripts**: A command-line markdown alteration tool.",
+      "keywords": [],
+      "homepage": "https://github.com/erichosick/markdown-scripts#readme",
+      "bugs": {
+        "url": "https://github.com/erichosick/markdown-scripts/issues",
+        "email": "erichosick@gmail.com"
+      },
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/erichosick/markdown-scripts.git"
+      },
+      "author": {
+        "name": "Eric",
+        "email": "erichosick@gmail.com",
+        "url": "https://github.com/erichosick"
+      },
+      "contributors": [],
+      "engines": {
+        "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+      },
+      "scripts": {}
+    }

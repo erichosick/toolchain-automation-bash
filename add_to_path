@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Function to expand tilde to home directory in paths
+expand_path() {
+    local path=$1
+    if [[ $path == "~"* ]]; then
+        echo "${path/\~/$HOME}"
+    else
+        echo "$path"
+    fi
+}
+
+# Function to add a directory to the PATH in the specified bash config file
+add_to_path() {
+    local dir
+    dir=$(expand_path $1)
+    local config_file
+    config_file=$(expand_path $2)
+
+    # Create the directory recursively if it doesn't exist
+    mkdir -p "$dir"
+
+    # Check if the directory is already in the current PATH
+    if [[ ":$PATH:" != *":$dir:"* ]]; then
+        # Check if the directory is already in the PATH in the config file
+        if ! grep -q "export PATH=\".*$dir.*\"" "$config_file"; then
+            # Add directory to PATH if it's not already there
+            echo "export PATH=\"\$PATH:$dir\"" >> "$config_file"
+            echo "Directory '$dir' added to PATH in $config_file."
+        else
+            echo "Directory '$dir' is already in the PATH in $config_file."
+        fi
+    else
+        echo "Directory '$dir' is already in the current PATH."
+    fi
+}
+
+# Main script execution
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <directory> <shell_config_file>"
+    exit 1
+fi
+
+add_to_path "$1" "$2"

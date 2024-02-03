@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Function to check if text exists in a file
+check_text_in_file() {
+    local file_path="$1"
+    local text="$2"
+
+    # Expand the file path to handle ~, /, and .
+    file_path=$(eval echo $file_path)
+
+    # Check if the file exists
+    if [ ! -f "$file_path" ]; then
+        return 1
+    fi
+
+    # Search for the text in the file
+    if grep -qF -- "$text" "$file_path"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Main script execution
+# Ensure two arguments are provided
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 [file path] [text]"
+    exit 1
+fi
+
+check_text_in_file "$1" "$2"
+exit $?

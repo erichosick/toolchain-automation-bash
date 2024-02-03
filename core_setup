@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Load .env file
+set -a
+source .env
+set +a
+
+# Expand paths (handles tilde expansion)
+expand_path() {
+    local path=$1
+    if [[ $path == "~"* ]]; then
+        echo "${path/\~/$HOME}"
+    else
+        echo "$path"
+    fi
+}
+
+# Environment variables
+script_path=$(expand_path $SCRIPT_PATH)
+bash_resource_file=$(expand_path $BASH_RESOURCE_FILE)
+
+# Run add_to_path script
+add_to_path "$script_path" "$bash_resource_file"
+
+# Check if the first parameter is provided
+if [ -z "$1" ]; then
+    param="false"
+    echo "No parameter provided. Defaulting to false."
+else
+    param="$1"
+fi
+
+brew_setup $param
+git_setup "$bash_resource_file"
+nvm_setup "$bash_resource_file"
+node_setup "$bash_resource_file"

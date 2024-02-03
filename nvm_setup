@@ -1,0 +1,33 @@
+#!/bin/zsh
+
+# Check if enough arguments are provided
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <shell_config_file>"
+    exit 1
+fi
+
+# The shell config file, e.g., .zshrc, .bashrc
+shell_config_file=$1
+
+# Call brew_setup with false argument
+./brew_setup false
+
+# Block of text to add
+block_to_add='export NVM_DIR="$HOME/.nvm"
+  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+  
+nvm use default  
+'
+
+# Check if the block of text exists, and add it if it doesn't
+if ./text_exists_in_file "$shell_config_file" 'export NVM_DIR="$HOME/.nvm"'; then
+    echo "The block of text already exists in $shell_config_file. No changes needed."
+else
+    echo "$block_to_add" >> "$shell_config_file"
+    echo "Added the block of text to $shell_config_file"
+fi
+
+source "$shell_config_file"
+
+echo "NVM setup completed."

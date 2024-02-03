@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Check if enough arguments are provided
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <shell_config_file>"
+    exit 1
+fi
+
+# The shell config file, e.g., .zshrc, .bashrc
+shell_config_file=$1
+
+# Function to check if Git is installed
+is_git_installed() {
+    if command -v git &>/dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Function to check if installed Git is Apple's version and update if necessary
+update_apple_git() {
+    local git_version
+    git_version=$(git --version)
+
+    if [[ $git_version == *"Apple Git"* ]]; then
+        echo "Apple's version of Git is installed."
+        # Update Xcode Command Line Tools, which includes Git
+        # xcode-select --install
+    fi
+}
+
+# Main script execution
+if is_git_installed; then
+    update_apple_git
+fi
+
+
+# Block of text to add
+block_to_add='
+# instead of showing output to less, uses cat so it just display
+# like git branch will just show the branches instead of going to less
+export PAGER=cat
+'
+
+
+# Check if the block of text exists, and add it if it doesn't
+if ./text_exists_in_file "$shell_config_file" 'export PAGER=cat'; then
+    echo "export PAGER=cat already exists in $shell_config_file"
+else
+    echo "$block_to_add" >> "$shell_config_file"
+    echo "Added export PAGER=cat to $shell_config_file"
+fi
+
+echo "Git setup completed."

@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Function to check if Homebrew is installed
+is_homebrew_installed() {
+    if command -v brew &>/dev/null; then
+        echo "Homebrew is already installed."
+        return 0
+    else
+        echo "Homebrew is not installed. Starting installation."
+        return 1
+    fi
+}
+
+# Function to update and upgrade Homebrew
+update_homebrew() {
+    echo "Running Homebrew maintenance tasks..."
+    brew doctor
+    brew cleanup
+    brew update
+    brew upgrade
+}
+
+# Main script execution
+# Install or reinstall Homebrew if it's not already installed
+if ! is_homebrew_installed; then
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# Check if update parameter is true
+if [ "$1" == "true" ]; then
+    update_homebrew
+fi

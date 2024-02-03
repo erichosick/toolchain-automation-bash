@@ -1,0 +1,33 @@
+#!/bin/zsh
+
+# Function to check if text exists in a file
+function check_and_append {
+    local file_path="$1"
+    local text_to_add="$2"
+    local create_if_missing=${3:-false}
+
+    # Expanding tilde and relative paths
+    file_path=$(eval echo $file_path)
+
+    # Check if the file exists
+    if [[ ! -f "$file_path" ]]; then
+        if [[ "$create_if_missing" == true ]]; then
+            # Create the directory path if it doesn't exist
+            mkdir -p "$(dirname "$file_path")"
+            touch "$file_path"
+        else
+            return 1
+        fi
+    fi
+
+    # Check if the text is already in the file
+    if grep -qF -- "$text_to_add" "$file_path"; then
+    else
+        # Append the text to the file
+        echo "$text_to_add" >> "$file_path"
+    fi
+}
+
+# Calling the function with arguments
+# $1: File path, $2: Text to add, $3: Create file if missing (optional)
+check_and_append "$1" "$2" "$3"

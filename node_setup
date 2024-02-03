@@ -1,0 +1,45 @@
+#!/bin/zsh
+
+# Check if enough arguments are provided
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <shell_config_file>"
+    exit 1
+fi
+
+# The shell config file, e.g., .zshrc, .bashrc
+shell_config_file=$1
+
+source "$shell_config_file"
+
+
+# Function to install and clean up Node versions using NVM
+install_and_cleanup() {
+    local version_prefix=$1
+
+    # Install the latest version of the specified major version
+    nvm install $version_prefix
+
+    # TODO: List installed versions and remove older versions of the same major version
+}
+
+# Main script execution
+
+# # Ensure NVM is available
+# if ! command -v nvm &> /dev/null; then
+#     echo "NVM is not installed. Running nvm_setup."
+#     ./nvm_setup "$shell_config_file"
+    
+#     # Reload shell configuration to ensure NVM is available
+#     source "$shell_config_file"
+# fi
+
+# Install and clean up the specified Node versions
+install_and_cleanup v19
+install_and_cleanup v20
+install_and_cleanup v21
+
+
+nvm alias default v21
+source "$shell_config_file"
+
+echo "Installation and cleanup complete."
