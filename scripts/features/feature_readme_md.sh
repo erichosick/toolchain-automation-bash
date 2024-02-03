@@ -31,14 +31,13 @@ project_feature() {
   issue_number=$(project_pre_feature "$project_directory" "$feature_name" "$feature_description" "$required_vars" "$GITHUB_ORG_NAME" "$REPOSITORY_NAME" "$GITHUB_ASSIGNEE" "$branch_name" "$issue_description")
   local issue_number_result=$?
 
-  echo "here"
-  return 1;
-
-
-  readme_template_create "$project_directory" "$PROJECT_NAME" "$PROJECT_DESCRIPTION" "$AUTHOR_NAME" "$AUTHOR_EMAIL" "$AUTHOR_URL" "$README_ADDITIONAL" || return $?
 
   # START: project_feature
-  package_json_create "$project_directory" "$PROJECT_NAME" "$PROJECT_LICENSE" "$PROJECT_DESCRIPTION" "$GITHUB_ORG_NAME" "$REPOSITORY_NAME" "$AUTHOR_NAME" "$AUTHOR_EMAIL" "$AUTHOR_URL" "$PROJECT_KEYWORDS" || return $?
+
+  readme_template_create "$project_directory" "$PROJECT_NAME" "$PROJECT_DESCRIPTION" || return $?
+
+  print_status "debug" "here" "here"
+  return 1;
 
   # END: project_feature
 

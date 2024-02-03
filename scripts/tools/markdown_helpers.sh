@@ -1,81 +1,89 @@
-# # Purpose:
-# #   Adds content at a specified location within a Markdown file based on the
-# #   provided token and direction.
-# #
-# # Parameters:
-# #   - file_path: The path to the Markdown file.
-# #   - token: The token around which content is to be added. The token must be
-# #            defined in the markdown file as <!-- TOKEN_START --> and
-# #            <!-- TOKEN_END -->.
-# #   - direction: Determines where to add the content relative to the token
-# #                ('above' or 'below').
-# #   - content: The content to be added. If not provided, it will be read from
-# #              stdin.
-# #
-# # Usage:
-# #   token_add_content README.md TITLE above "New content"
-# #   echo "New content" | token_add_content README.md TITLE above
-# #
-# # Behavior:
-# #   Inserts the given content either directly above or below the specified token
-# #   in the file. If the content is not provided as an argument, it prompts the
-# #   user to enter it manually.
-# token_add_content() {
-#   local file_path="$1"
-#   local token="$2"
-#   local direction="$3"
-#   local content="$4"
+# Purpose:
+#   Adds content at a specified location within a Markdown file based on the
+#   provided token and direction.
+#
+# Parameters:
+#   - file_path: The path to the Markdown file.
+#   - token: The token around which content is to be added. The token must be
+#            defined in the markdown file as <!-- TOKEN_START --> and
+#            <!-- TOKEN_END -->.
+#   - direction: Determines where to add the content relative to the token
+#                ('above' or 'below').
+#   - content: The content to be added. If not provided, it will be read from
+#              stdin.
+#
+# Usage:
+#   token_add_content README.md TITLE above "New content"
+#   echo "New content" | token_add_content README.md TITLE above
+#
+# Behavior:
+#   Inserts the given content either directly above or below the specified token
+#   in the file. If the content is not provided as an argument, it prompts the
+#   user to enter it manually.
+token_add_content() {
 
-#   local token_suffix=""
+  if [[ "$#" -ne 3 && "$#" -ne 4 ]]; then
+    print_status "error" "token_add_content" "Usage token_add_content <file_path> <token> <direction> [content] where <direction> must be 'above' or 'below'. Use echo 'content' | token_add_content ... to pipe content instead. Values(s) passed were '$#'"
+    return 1
+  fi
 
-#   local error_message="token_add_content: Usage token_add_content <file_path> <token> <direction> [content] where <direction> must be 'above' or 'below'. Use echo 'content' | token_add_content ... to pipe content instead."
+  local file_path="$1"
+  local token="$2"
+  local direction="$3"
+  local content="$4"
 
-#   # Determine the suffix based on the direction
-#   if [[ "$direction" == "below" ]]; then
-#     token_suffix="_START"
-#   elif [[ "$direction" == "above" ]]; then
-#     token_suffix="_END"
-#   else
-#     echo "$error_message"
-#     return 1
-#   fi
+  local token_suffix=""
 
-#   # Format the token to match the specific pattern <!-- {TOKEN_SUFFIX} -->
-#   local formatted_token="<!-- ${token}${token_suffix} -->"
+  # Determine the suffix based on the direction
+  if [[ "$direction" == "below" ]]; then
+    token_suffix="_START"
+  elif [[ "$direction" == "above" ]]; then
+    token_suffix="_END"
+  else
+    print_status "error" "token_add_content" "The <direction> must be 'above' or 'below'."
+    return 1
+  fi
 
-#   # Check if the file exists
-#   if [[ ! -f "$file_path" ]]; then
-#     echo "Error: File '$file_path' does not exist."
-#     return 1
-#   fi
+  # Format the token to match the specific pattern <!-- {TOKEN_SUFFIX} -->
+  local formatted_token="<!-- ${token}${token_suffix} -->"
 
-#   # Check if the formatted token exists in the file
-#   if ! grep -q "$formatted_token" "$file_path"; then
-#     echo "Error: Token '$formatted_token' not found in the file."
-#     return 1
-#   fi
+  # Check if the file exists
+  if [[ ! -f "$file_path" ]]; then
+    echo "Error: File '$file_path' does not exist."
+    return 1
+  fi
 
+  # Check if the formatted token exists in the file
+  if ! grep -q "$formatted_token" "$file_path"; then
+    echo "Error: Token '$formatted_token' not found in the file."
+    return 1
+  fi
 
-#   # Read content from stdin if it's not provided as an argument
-#   if [ -t 0 ]; then  # Check if stdin is a terminal (i.e., not piped input)
-#     echo "Please type in the HTML content to add to $token. Press Enter then Ctrl-D when done (or ctrl-c to cancel)."
-#     content=$(cat)
-#   else
-#     content=$(cat)  # Read content from piped input
-#   fi
+  if [[ -z "$content" ]]; then
+    # Read content from stdin if it's not provided as an argument
+    if [ -t 0 ]; then  # Check if stdin is a terminal (i.e., not piped input)
+      echo "Please type in the HTML content to add to $token. Press Enter then Ctrl-D when done (or ctrl-c to cancel)."
+      content=$(cat)
+    else
+      content=$(cat)  # Read content from piped input
+    fi
+  fi
 
-#   # Use sed to insert content based on the direction
-#   # (compatible with BSD sed on macOS)
-#   if [[ "$direction" == "above" ]]; then
-#     sed -i '' "/$formatted_token/i\\
-# $content
-# " "$file_path"
-#   else
-#     sed -i '' "/$formatted_token/a\\
-# $content
-# " "$file_path"
-#   fi
-# }
+  print_status "debug" "content" "$formatted_token"
+
+  # Use sed to insert content based on the direction
+  # (compatible with BSD sed on macOS)
+  if [[ "$direction" == "above" ]]; then
+    sed -i '' "/$formatted_token/i\\
+$content
+" "$file_path"
+  else
+    sed -i '' "/$formatted_token/a\\
+$content
+" "$file_path"
+  fi
+}
+
 
 # # Purpose:
 # #   Clears content between specified start and end tokens in a Markdown file.
@@ -94,17 +102,13 @@
 # #   this range before clearing. Returns an error if the specified tokens are not
 # #   found or if nested tokens are detected.
 # token_clear() {
+#   if [ "$#" -ne 2 ]; then
+#     print_status "error" "token_clear" "Usage token_clear <file_path> <token>. Values(s) passed were '$#'"
+#     return 1
+#   fi
+
 #   local file_path="$1"
 #   local token="$2"
-
-#   # Error message to be displayed if arguments are missing
-#   local error_message="token_clear: Uasage token_clear <file_path> <token>."
-
-#   # Check if either the file path or token is missing
-#   if [[ -z "$file_path" || -z "$token" ]]; then
-#     echo "$error_message"
-#     return 1  # Exit the function with an error status
-#   fi
 
 #   # Format the start and end tokens
 #   local start_token="<!-- ${token}_START -->"
@@ -112,17 +116,17 @@
 
 #   # Check if the file exists
 #   if [[ ! -f "$file_path" ]]; then
-#     echo "Error: File '$file_path' does not exist."
+#     print_status "error" "token_clear" "File '$file_path' does not exist"
 #     return 1
 #   fi
 
 #   # Check if the formatted tokens exist in the file
 #   if ! grep -q "$start_token" "$file_path"; then
-#     echo "Error: Start token '$start_token' not found in the file."
+#     print_status "error" "token_clear" "Start token '$start_token' not found in the file"
 #     return 1
 #   fi
 #   if ! grep -q "$end_token" "$file_path"; then
-#     echo "Error: End token '$end_token' not found in the file."
+#     print_status "error" "token_clear" "End token '$end_token' not found in the file"
 #     return 1
 #   fi
 
@@ -130,7 +134,7 @@
 #   if sed -n "/$start_token/,/$end_token/{
 #     /<!--/p
 #   }" "$file_path" | grep -qvE "$start_token|$end_token"; then
-#     echo "Error: Cannot clear out a token range that contains other tokens."
+#     print_status "error" "token_clear" "Cannot clear out a token range that contains other tokens"
 #     return 1
 #   fi
 
@@ -164,17 +168,13 @@
 # #   Returns an error if the specified tokens are not found or the file does
 # #   not exist.
 # token_sort() {
+#   if [ "$#" -ne 2 ]; then
+#     print_status "error" "token_sort" "Usage token_sort <file_path> <token>. Values(s) passed were '$#'"
+#     return 1
+#   fi
+
 #   local file_path="$1"
 #   local token="$2"
-
-#   # Error message to be displayed if arguments are missing
-#   local error_message="token_sort: Usage token_sort <file_path> <token>."
-
-#   # Check if either the file path or token is missing
-#   if [[ -z "$file_path" || -z "$token" ]]; then
-#     echo "$error_message"
-#     return 1  # Exit the function with an error status
-#   fi
 
 #   # Format the start and end tokens
 #   local start_token="<!-- ${token}_START -->"
@@ -182,18 +182,18 @@
 
 #   # Check if the file exists
 #   if [[ ! -f "$file_path" ]]; then
-#     echo "Error: File '$file_path' does not exist."
+#     print_status "error" "token_sort" "File '$file_path' does not exist"
 #     return 1
 #   fi
 
 #   # Check if the formatted tokens exist in the file
 #   if ! grep -q "$start_token" "$file_path"; then
-#     echo "Error: Start token '$start_token' not found in the file."
+#     print_status "error" "token_sort" "Start token '$start_token' not found in the file"
 #     return 1
 #   fi
 
 #   if ! grep -q "$end_token" "$file_path"; then
-#     echo "Error: End token '$end_token' not found in the file."
+#     print_status "error" "token_sort" "End token '$end_token' not found in the file"
 #     return 1
 #   fi
 
@@ -235,19 +235,14 @@
 # #   the new tokens before adding to avoid duplicates. Returns an error if the
 # #   specified existing token is not found, or the new token exists.
 # token_new() {
+#   if [ "$#" -ne 3 ]; then
+#     print_status "error" "token_new" "Usage token_new <file_path> <existing_token> <new_token>. Values(s) passed were '$#'"
+#     return 1
+#   fi
+
 #   local file_path="$1"
 #   local existing_token="$2"
 #   local new_token="$3"
-
-#     # Error message to be displayed if arguments are missing
-#   local error_message="token_new: Usage token_new <file_path> <existing_token> <new_token>."
-
-#   # Check if either the file path or token is missing
-#   if [[ -z "$file_path" || -z "$existing_token" || -z "$existing_token" ]]; then
-#     echo "$error_message"
-#     return 1  # Exit the function with an error status
-#   fi
-
 
 #   # Format the existing end token and new tokens
 #   local existing_end_token="<!-- ${existing_token}_END -->"
@@ -256,19 +251,19 @@
 
 #   # Check if the file exists
 #   if [[ ! -f "$file_path" ]]; then
-#     echo "Error: File '$file_path' does not exist."
+#     print_status "error" "token_new" "File '$file_path' does not exist"
 #     return 1
 #   fi
 
 #   # Check if the existing end token exists in the file
 #   if ! grep -q "$existing_end_token" "$file_path"; then
-#     echo "Error: Token for '$existing_token' not found in the file. Unable to add a new token after it."
+#     print_status "error" "token_new" "End token for '$existing_token' not found in the file. Unable to add a new token after it"
 #     return 1
 #   fi
 
 #   # Check if the new tokens already exist in the file
 #   if grep -q "$new_start_token" "$file_path" || grep -q "$new_end_token" "$file_path"; then
-#     echo "Error: Token '$new_token' already exist in the file."
+#     print_status "error" "token_new" "Token '$new_token' already exist in the file"
 #     return 1
 #   fi
 
@@ -298,7 +293,7 @@ token_exists() {
   # Check if the new start token already exists in the file
   if grep -qF "$start_token" "$file_path"; then
     print_status "skipped" "token_append" "Token '${token}' already exists in the file."
-    return 0
+    return 2
   fi
 
   return 0
@@ -332,6 +327,11 @@ token_append_to_file() {
 }
 
 tokens_add() {
+  if [ "$#" -ne 2 ]; then
+    print_status "error" "tokens_add" "Usage tokens_add <file_path> <tokens>. Values(s) passed were '$#'"
+    return 1
+  fi
+
   local file_path="$1"
   local tokens_string="$2"
   
@@ -343,8 +343,13 @@ tokens_add() {
     # Trim leading and trailing whitespace from token
     local token_clean
     token_clean=$(echo "$token" | xargs)
-    
+
     # Call token_append_to_file for each token
-    token_append_to_file "$file_path" "$token_clean" || return $?
+    token_append_to_file "$file_path" "$token_clean"
+    local token_append_status=$?
+
+    if [[ "$token_append_status" -ne 0 && "$token_append_status" -ne 2 ]]; then
+      return $token_append_status
+    fi
   done
 }

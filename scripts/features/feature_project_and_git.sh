@@ -1,3 +1,11 @@
+
+# @description Setup the project directory and git repository
+# @param string $1 The project directory
+# @example
+#   project_feature "/path/to/project"
+# @exitcode 0  If the project feature was setup successfully.
+# @exitcode 1  If any error occurred.
+# @exitcode 2 If the feature already exists and we are skipping
 project_feature() {
   # the feature name is the name of the feature script itself
   # (without the .sh extension) and is used as a git tag. This is how we can
@@ -40,7 +48,7 @@ project_feature() {
   make_directory "$project_directory" -q || return $?
 
   # only continue feature does not exist
-  feature_exists_status "$project_directory" "$feature_name" || return 1
+  feature_exists_status "$project_directory" "$feature_name" || return 2
 
   # Initialize git, add remote repository and setup remote origin
   git_setup "$project_directory" "$GITHUB_ORG_NAME" "$REPOSITORY_NAME"

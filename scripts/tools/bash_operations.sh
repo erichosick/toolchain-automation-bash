@@ -164,9 +164,6 @@ touch_file() {
   touch_call_message=$(touch "$file_path" 2>&1)
   local touch_call_exit_status=$?
 
-  print_status "debug" "create_file" "touch_call_message: $touch_call_message"
-  print_status "debug" "create_file" "touch_call_exit_status: $touch_call_exit_status"
-
   if [ "$touch_call_exit_status" -ne 0 ]; then
     print_status "error" "create_file" "Unable to create file '$file_path'. $touch_call_message"
     return $touch_call_exit_status

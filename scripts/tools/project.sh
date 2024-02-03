@@ -141,7 +141,7 @@ project_pre_feature() {
   environment_variables_verify "${required_vars[@]}" || { echo "no_issue_env_var_invalid"; return $?; } 
 
   # only continue feature does not exist
-  feature_exists_status "$project_directory" "$feature_name" || { echo "no_issue_feature_exists"; return 1; }
+  feature_exists_status "$project_directory" "$feature_name" || { echo "no_issue_feature_exists"; return 2; }
 
   # Initialize git, add remote repository and setup remote origin
   # git_setup "$project_directory" "$github_org_name" "$repository_name"
@@ -232,6 +232,7 @@ project_create() {
   local environment_file="$2"
 
   print_status "project" "project_create" "Create or update project"
+  print_status "debug" "project_create" "Bash version '$BASH_VERSION'"
 
   local project_directory_resolved
   project_directory_resolved=$(normalize_path "$project_directory") || return $?
@@ -261,7 +262,17 @@ project_create() {
     local verify_feature_resolved
     verify_feature_resolved=$(normalize_path "$feature") || return $?
     source "$verify_feature_resolved"
-    project_feature "$project_directory_resolved" || return $?
+
+    project_feature "$project_directory_resolved"
+    local project_feature_status=$?
+
+    # if the feature was already created (exit status 2) or the feature was
+    # crated successfully (exit status 0), then we continue to the next feature.
+    # Else we exit.
+    if [[ "$project_feature_status" -ne 0 && "$project_feature_status" -ne 2 ]]; then
+      unset project_feature
+      return 1
+    fi
 
     # When we source a feature file, it creates a function called
     # 'project_feature'. To cleanup, let's remove that specific project_feature
