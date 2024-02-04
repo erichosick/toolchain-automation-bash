@@ -12,7 +12,7 @@ environment_variable_verify() {
 missing_vars=()
 
 # List of required environment variables
-required_vars=("GITHUB_TOKEN" "GITHUB_ORG_NAME" "GITHUB_ASSIGNEE"
+required_vars=("GITHUB_PERSONAL_ACCESS_TOKEN" "GITHUB_ORG_NAME" "GITHUB_ASSIGNEE"
                "PROJECT_NAME" "AUTHOR_NAME" "AUTHOR_EMAIL" "AUTHOR_URL"
                "PROJECT_DESCRIPTION" "PROJECT_LICENSE" "PROJECT_KEYWORDS"
                "README_ADDITIONAL" "PUBLISH_TO_GITHUB" "REPOSITORY_NAME")
